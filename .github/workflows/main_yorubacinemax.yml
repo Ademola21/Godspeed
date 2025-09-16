@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '22.x'
+          node-version: '20.x'
 
       - name: npm install, build, and test
         run: |
@@ -29,14 +29,11 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
-      - name: Zip artifact for deployment
-        run: zip -r node-app.zip . -x "*.git*" "*.md" ".github/*" "node_modules/.cache/*"
-
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: node-app.zip
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
@@ -50,13 +47,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4B692996E8214209AD6977B5D9F3FDCC }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4DEDFB3327624EC7A05BE16CD6B7B9C9 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4E8F78D9E00942368B2BAEFCC90767EF }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B785F30FC9A6420192FE70FC68220E6D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A83722D1F977419FACEFE629B731B07A }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3406E82D864641BB8C8B3806AE41C6D7 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -64,34 +61,5 @@ jobs:
         with:
           app-name: 'Yorubacinemax'
           slot-name: 'Production'
-          package: node-app.zip
-          startup-command: 'node dist/server.js'
-      
-      - name: 'Configure App Settings'
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: 'Yorubacinemax'
-          slot-name: 'Production'
-          app-settings-json: |
-            [
-              {
-                "name": "WEBSITES_PORT",
-                "value": "8080"
-              },
-              {
-                "name": "PORT",
-                "value": "8080"
-              },
-              {
-                "name": "NODE_ENV",
-                "value": "production"
-              },
-              {
-                "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-                "value": "true"
-              },
-              {
-                "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                "value": "~20"
-              }
-            ]
+          package: .
+          
