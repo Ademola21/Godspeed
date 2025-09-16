@@ -1,0 +1,29 @@
+# Dockerfile for running the Telegram bot independently
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY bot/ ./bot/
+COPY services/ ./services/
+COPY data/ ./data/
+COPY bot-standalone.ts ./
+
+# Build the application
+RUN npm run build:server
+
+# Expose port (not needed for bot, but good practice)
+EXPOSE 8080
+
+# Set environment
+ENV NODE_ENV=production
+
+# Run the bot
+CMD ["node", "dist/bot-standalone.js"]

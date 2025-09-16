@@ -1,0 +1,6 @@
+
+node_env: production
+nodeProcessCommandLine: node
+loggingEnabled: true
+logDirectory: iisnode
+debuggingEnabled: false

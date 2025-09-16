@@ -1,0 +1,75 @@
+# Azure App Service deployment configuration
+# This file can be used with GitHub Actions to deploy to Azure App Service
+
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: yoruba-cinemax-app    # Set this to your app name
+  AZURE_WEBAPP_PACKAGE_PATH: '.'          # Set this to the path to your web app project
+  NODE_VERSION: '18.x'                    # Set this to the node version to use
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to Azure App Service
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Remove dev dependencies
+      run: npm prune --production
+    
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+  deploy-bot:
+    name: Deploy Bot to Azure Container Instance
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js  
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build bot
+      run: npm run build
+      
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Deploy bot to Azure Container Instance
+      run: |
+        # This would deploy the bot as a separate container instance
+        # Adjust according to your Azure setup
+        echo "Deploy bot container logic here"
